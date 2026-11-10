@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Austonix AI Trader – MVP Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            surface: {
+              900: '#0b0f19',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .chart-placeholder {
+      background: linear-gradient(180deg, rgba(14,165,233,0.08) 0%, transparent 100%);
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+    }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    .candle { width: 6px; margin: 0 1px; display: inline-block; vertical-align: bottom; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  </style>
+</head>
+<body class="bg-surface-900 text-gray-100 min-h-screen dark">
+  <!-- App Shell -->
+  <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 glass border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center font-bold text-sm">A</div>
+        <div>
+          <div class="font-semibold text-sm leading-tight">Austonix AI Trader</div>
+          <div class="text-[10px] text-brand-400 tracking-wide">TRADE SMARTER · THINK AHEAD</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs bg-emerald-900/40 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800">PAPER</span>
+        <button onclick="showScreen('profile')" class="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center text-xs font-medium">U</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="content" class="flex-1 overflow-y-auto pb-24">
+      <!-- Screens will be injected here -->
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass border-t border-gray-800 safe-bottom z-50">
+      <div class="grid grid-cols-5 text-[10px]">
+        <button onclick="showScreen('dashboard')" class="nav-btn flex flex-col items-center py-2.5 gap-0.5 text-gray-400" data-screen="dashboard">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Home</span>
+        </button>
+        <button onclick="showScreen('markets')" class="nav-btn flex flex-col items-center py-2.5 gap-0.5 text-gray-400" data-screen="markets">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+          <span>Markets</span>
+        </button>
+        <button onclick="showScreen('ai')" class="nav-btn flex flex-col items-center py-2.5 gap-0.5 text-gray-400" data-screen="ai">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          <span>AI</span>
+        </button>
+        <button onclick="showScreen('trade')" class="nav-btn flex flex-col items-center py-2.5 gap-0.5 text-gray-400" data-screen="trade">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span>Trade</span>
+        </button>
+        <button onclick="showScreen('journal')" class="nav-btn flex flex-col items-center py-2.5 gap-0.5 text-gray-400" data-screen="journal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Journal</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    // ========== STATE ==========
+    const state = {
+      balance: 10000,
+      positions: JSON.parse(localStorage.getItem('aat_positions') || '[]'),
+      trades: JSON.parse(localStorage.getItem('aat_trades') || '[]'),
+      journal: JSON.parse(localStorage.getItem('aat_journal') || '[]'),
+      currentScreen: 'dashboard',
+      selectedPair: 'EURUSD',
+      prices: {
+        EURUSD: 1.0842,
+        GBPUSD: 1.3125,
+        USDJPY: 151.84,
+        BTCUSD: 68420,
+        ETHUSD: 3450
+      }
+    };
+
+    // Mock price movement
+    setInterval(() => {
+      Object.keys(state.prices).forEach(k => {
+        const change = (Math.random() - 0.5) * (k.includes('BTC') || k.includes('ETH') ? 40 : 0.0015);
+        state.prices[k] = +(state.prices[k] + change).toFixed(k.includes('JPY') ? 2 : (k.includes('USD') && k.length > 6 ? 0 : 4));
+      });
+      if (state.currentScreen === 'dashboard' || state.currentScreen === 'markets' || state.currentScreen === 'trade') {
+        updateLivePrices();
+      }
+    }, 2500);
+
+    function saveState() {
+      localStorage.setItem('aat_positions', JSON.stringify(state.positions));
+      localStorage.setItem('aat_trades', JSON.stringify(state.trades));
+      localStorage.setItem('aat_journal', JSON.stringify(state.journal));
+    }
+
+    // ========== NAVIGATION ==========
+    function showScreen(name) {
+      state.currentScreen = name;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-400');
+        btn.classList.add('text-gray-400');
+        if (btn.dataset.screen === name) {
+          btn.classList.remove('text-gray-400');
+          btn.classList.add('text-brand-400');
+        }
+      });
+      const content = document.getElementById('content');
+      content.innerHTML = screens[name]();
+      if (name === 'trade') initRiskCalc();
+      if (name === 'ai') focusAIInput();
+    }
+
+    // ========== SCREENS ==========
+    const screens = {
+      dashboard() {
+        const openPnl = state.positions.reduce((sum, p) => {
+          const current = state.prices[p.pair] || p.entry;
+          const dir = p.side === 'long' ? 1 : -1;
+          return sum + (current - p.entry) * dir * p.size;
+        }, 0);
+        const equity = state.balance + openPnl;
+
+        return `
+          <div class="p-4 space-y-4">
+            <!-- Equity Card -->
+            <div class="bg-gradient-to-br from-surface-800 to-surface-700 rounded-2xl p-4 border border-gray-700">
+              <div class="text-xs text-gray-400 mb-1">Paper Equity</div>
+              <div class="text-2xl font-bold tracking-tight">$${equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${openPnl >= 0 ? '+' : ''}${openPnl.toFixed(2)} open</span>
+                <span class="text-xs text-gray-500">• Starting $10,000</span>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="showScreen('ai')" class="bg-surface-800 border border-gray-700 rounded-xl p-3 text-left hover:border-brand-600 transition">
+                <div class="text-brand-400 text-xs font-medium mb-1">AI Assistant</div>
+                <div class="text-sm">Ask about markets</div>
+              </button>
+              <button onclick="showScreen('trade')" class="bg-surface-800 border border-gray-700 rounded-xl p-3 text-left hover:border-brand-600 transition">
+                <div class="text-brand-400 text-xs font-medium mb-1">Risk & Trade</div>
+                <div class="text-sm">Calculate & paper trade</div>
+              </button>
+            </div>
+
+            <!-- Watchlist -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-sm font-semibold text-gray-300">Watchlist</h2>
+                <button onclick="showScreen('markets')" class="text-xs text-brand-400">See all</button>
+              </div>
+              <div class="space-y-2" id="watchlist">
+                ${Object.entries(state.prices).map(([pair, price]) => `
+                  <div class="bg-surface-800 rounded-xl px-3 py-2.5 flex items-center justify-between border border-gray-800">
+                    <div>
+                      <div class="font-medium text-sm">${pair}</div>
+                      <div class="text-[10px] text-gray-500">${pair.includes('BTC') || pair.includes('ETH') ? 'Crypto' : 'Forex'}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-mono text-sm price-${pair}">${formatPrice(pair, price)}</div>
+                      <div class="text-[10px] text-emerald-400">+0.12%</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Open Positions Summary -->
+            <div>
+              <h2 class="text-sm font-semibold text-gray-300 mb-2">Open Positions (${state.positions.length})</h2>
+              ${state.positions.length === 0 ? `
+                <div class="bg-surface-800/50 border border-dashed border-gray-700 rounded-xl p-4 text-center text-sm text-gray-500">
+                  No open paper positions.<br>
+                  <button onclick="showScreen('trade')" class="text-brand-400 mt-1">Open a paper trade →</button>
+                </div>
+              ` : state.positions.map(p => positionCard(p)).join('')}
+            </div>
+
+            <!-- Education Tip -->
+            <div class="bg-brand-900/20 border border-brand-800/50 rounded-xl p-3">
+              <div class="text-xs font-medium text-brand-300 mb-1">Principle: Risk before profit</div>
+              <div class="text-xs text-gray-400">Always define your stop loss and position size before entering a trade. The risk calculator is designed to keep you disciplined.</div>
+            </div>
+          </div>
+        `;
+      },
+
+      markets() {
+        return `
+          <div class="p-4 space-y-4">
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              ${['All', 'Forex', 'Crypto'].map(t => `
+                <button class="px-3 py-1 rounded-full text-xs whitespace-nowrap ${t==='All' ? 'bg-brand-600 text-white' : 'bg-surface-700 text-gray-300'}">${t}</button>
+              `).join('')}
+            </div>
+
+            <!-- Chart Mock -->
+            <div class="bg-surface-800 rounded-2xl border border-gray-700 overflow-hidden">
+              <div class="px-3 py-2 flex items-center justify-between border-b border-gray-700">
+                <div class="font-medium">${state.selectedPair}</div>
+                <div class="font-mono text-sm price-${state.selectedPair}">${formatPrice(state.selectedPair, state.prices[state.selectedPair])}</div>
+              </div>
+              <div class="h-48 chart-placeholder relative flex items-end justify-center px-2 pb-2">
+                ${generateMockCandles()}
+                <div class="absolute top-2 left-2 text-[10px] text-gray-500">4H · Mock data for prototype</div>
+              </div>
+              <div class="flex gap-1 px-2 py-2 border-t border-gray-700 overflow-x-auto">
+                ${['1m','5m','15m','1H','4H','1D'].map(tf => `
+                  <button class="px-2 py-1 text-[10px] rounded ${tf==='4H' ? 'bg-brand-600' : 'bg-surface-700'}">${tf}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Indicators -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-surface-800 rounded-lg p-2.5 border border-gray-700">
+                <div class="text-gray-400">RSI (14)</div>
+                <div class="font-mono text-amber-400">58.4</div>
+              </div>
+              <div class="bg-surface-800 rounded-lg p-2.5 border border-gray-700">
+                <div class="text-gray-400">MACD</div>
+                <div class="font-mono text-emerald-400">Bullish</div>
+              </div>
+              <div class="bg-surface-800 rounded-lg p-2.5 border border-gray-700">
+                <div class="text-gray-400">MA 50 / 200</div>
+                <div class="font-mono">Above</div>
+              </div>
+              <div class="bg-surface-800 rounded-lg p-2.5 border border-gray-700">
+                <div class="text-gray-400">ATR</div>
+                <div class="font-mono">0.0042</div>
+              </div>
+            </div>
+
+            <!-- Pair Selector -->
+            <div>
+              <h3 class="text-sm font-medium mb-2">Select Instrument</h3>
+              <div class="space-y-1.5">
+                ${Object.keys(state.prices).map(pair => `
+                  <button onclick="state.selectedPair='${pair}'; showScreen('markets')" class="w-full flex items-center justify-between bg-surface-800 hover:bg-surface-700 rounded-xl px-3 py-2.5 border border-gray-800">
+                    <span class="font-medium text-sm">${pair}</span>
+                    <span class="font-mono text-sm price-${pair}">${formatPrice(pair, state.prices[pair])}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <button onclick="showScreen('ai')" class="w-full bg-brand-600 hover:bg-brand-500 text-white rounded-xl py-3 text-sm font-medium">
+              Ask AI about ${state.selectedPair}
+            </button>
+          </div>
+        `;
+      },
+
+      ai() {
+        return `
+          <div class="flex flex-col h-[calc(100vh-8rem)]">
+            <div class="p-4 border-b border-gray-800">
+              <h2 class="font-semibold">AI Market Assistant</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Educational analysis only · Not financial advice</p>
+            </div>
+            <div id="ai-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+              <div class="bg-surface-800 rounded-2xl p-3 text-sm border border-gray-700">
+                <div class="text-xs text-brand-400 mb-1">Austonix AI</div>
+                <p>Hello. I can help you understand current market conditions, explain technical concepts, or walk through risk considerations for ${state.selectedPair}.</p>
+                <p class="mt-2 text-gray-400 text-xs">I will always show supporting evidence and state uncertainty. I do not give guaranteed predictions or personalised investment advice.</p>
+              </div>
+            </div>
+            <div class="p-3 border-t border-gray-800 space-y-2">
+              <div class="flex gap-2 overflow-x-auto pb-1">
+                <button onclick="askAI('Analyse ${state.selectedPair} right now')" class="text-xs bg-surface-700 px-3 py-1.5 rounded-full whitespace-nowrap">Analyse ${state.selectedPair}</button>
+                <button onclick="askAI('What does RSI tell us?')" class="text-xs bg-surface-700 px-3 py-1.5 rounded-full whitespace-nowrap">Explain RSI</button>
+                <button onclick="askAI('How should I think about risk on this pair?')" class="text-xs bg-surface-700 px-3 py-1.5 rounded-full whitespace-nowrap">Risk thinking</button>
+              </div>
+              <div class="flex gap-2">
+                <input id="ai-input" type="text" placeholder="Ask about markets or concepts..." class="flex-1 bg-surface-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500" onkeydown="if(event.key==='Enter')sendAI()" />
+                <button onclick="sendAI()" class="bg-brand-600 hover:bg-brand-500 rounded-xl px-4 text-sm font-medium">Send</button>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      trade() {
+        return `
+          <div class="p-4 space-y-5">
+            <div>
+              <h2 class="font-semibold">Risk Calculator & Paper Trade</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Define risk first. Then simulate the trade.</p>
+            </div>
+
+            <!-- Risk Calculator -->
+            <div class="bg-surface-800 rounded-2xl border border-gray-700 p-4 space-y-3">
+              <div class="text-xs font-medium text-brand-400 uppercase tracking-wider">Position Size Calculator</div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-gray-400">Account Equity ($)</label>
+                  <input id="rc-equity" type="number" value="${state.balance.toFixed(0)}" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400">Risk per trade (%)</label>
+                  <input id="rc-risk" type="number" value="1" step="0.1" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" />
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[10px] text-gray-400">Instrument</label>
+                <select id="rc-pair" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5">
+                  ${Object.keys(state.prices).map(p => `<option value="${p}" ${p===state.selectedPair?'selected':''}>${p}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-gray-400">Entry Price</label>
+                  <input id="rc-entry" type="number" step="any" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400">Stop Loss</label>
+                  <input id="rc-stop" type="number" step="any" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" />
+                </div>
+              </div>
+
+              <button onclick="calculateRisk()" class="w-full bg-surface-700 hover:bg-surface-600 rounded-lg py-2 text-sm font-medium">Calculate</button>
+
+              <div id="rc-result" class="hidden bg-surface-900 rounded-xl p-3 space-y-1 text-sm border border-gray-700">
+                <!-- filled by JS -->
+              </div>
+            </div>
+
+            <!-- Paper Trade Form -->
+            <div class="bg-surface-800 rounded-2xl border border-gray-700 p-4 space-y-3">
+              <div class="text-xs font-medium text-brand-400 uppercase tracking-wider">Open Paper Position</div>
+              
+              <div class="flex gap-2">
+                <button id="side-long" onclick="setSide('long')" class="flex-1 py-2 rounded-lg text-sm font-medium bg-emerald-600/20 text-emerald-400 border border-emerald-700">Long</button>
+                <button id="side-short" onclick="setSide('short')" class="flex-1 py-2 rounded-lg text-sm font-medium bg-surface-700 text-gray-300 border border-gray-600">Short</button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] text-gray-400">Size (units)</label>
+                  <input id="pt-size" type="number" value="10000" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400">Entry (current)</label>
+                  <input id="pt-entry" type="number" step="any" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm mt-0.5" readonly />
+                </div>
+              </div>
+
+              <button onclick="openPaperTrade()" class="w-full bg-brand-600 hover:bg-brand-500 text-white rounded-xl py-3 text-sm font-medium">
+                Open Paper Trade
+              </button>
+              <p class="text-[10px] text-gray-500 text-center">This is a simulation. No real funds are used.</p>
+            </div>
+
+            <!-- Open Positions -->
+            <div>
+              <h3 class="text-sm font-medium mb-2">Open Positions</h3>
+              <div id="open-positions-list">
+                ${state.positions.length === 0 ? '<div class="text-sm text-gray-500 text-center py-4">No open positions</div>' : state.positions.map(p => positionCard(p, true)).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      journal() {
+        const closed = state.trades;
+        const wins = closed.filter(t => t.pnl > 0).length;
+        const winRate = closed.length ? ((wins / closed.length) * 100).toFixed(0) : 0;
+        const totalPnl = closed.reduce((s, t) => s + t.pnl, 0);
+
+        return `
+          <div class="p-4 space-y-4">
+            <div>
+              <h2 class="font-semibold">Portfolio & Journal</h2>
+              <p class="text-xs text-gray-400">Track performance and lessons</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="bg-surface-800 rounded-xl p-3 text-center border border-gray-700">
+                <div class="text-[10px] text-gray-400">Closed</div>
+                <div class="font-semibold">${closed.length}</div>
+              </div>
+              <div class="bg-surface-800 rounded-xl p-3 text-center border border-gray-700">
+                <div class="text-[10px] text-gray-400">Win Rate</div>
+                <div class="font-semibold">${winRate}%</div>
+              </div>
+              <div class="bg-surface-800 rounded-xl p-3 text-center border border-gray-700">
+                <div class="text-[10px] text-gray-400">Net P&L</div>
+                <div class="font-semibold ${totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}</div>
+              </div>
+            </div>
+
+            <!-- Closed Trades -->
+            <div>
+              <h3 class="text-sm font-medium mb-2">Trade History</h3>
+              ${closed.length === 0 ? `
+                <div class="text-sm text-gray-500 text-center py-6 border border-dashed border-gray-700 rounded-xl">
+                  No closed trades yet.<br>Open and close paper positions to build your journal.
+                </div>
+              ` : closed.slice().reverse().map(t => `
+                <div class="bg-surface-800 rounded-xl p-3 mb-2 border border-gray-700">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="font-medium text-sm">${t.pair} <span class="text-xs ${t.side==='long'?'text-emerald-400':'text-rose-400'}">${t.side.toUpperCase()}</span></div>
+                      <div class="text-[10px] text-gray-500">${new Date(t.closedAt).toLocaleString()}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-mono text-sm ${t.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}</div>
+                      <div class="text-[10px] text-gray-500">${t.size} units</div>
+                    </div>
+                  </div>
+                  ${t.note ? `<div class="mt-2 text-xs text-gray-400 border-t border-gray-700 pt-2">${t.note}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Add Journal Note -->
+            <div class="bg-surface-800 rounded-xl p-3 border border-gray-700">
+              <div class="text-xs font-medium mb-2">Quick Journal Entry</div>
+              <textarea id="journal-note" rows="2" placeholder="What did you learn from recent trades?" class="w-full bg-surface-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"></textarea>
+              <button onclick="addJournalNote()" class="mt-2 w-full bg-surface-700 hover:bg-surface-600 rounded-lg py-2 text-sm">Save Note</button>
+            </div>
+          </div>
+        `;
+      },
+
+      profile() {
+        return `
+          <div class="p-4 space-y-4">
+            <div class="text-center py-4">
+              <div class="w-16 h-16 rounded-full bg-brand-600 mx-auto flex items-center justify-center text-xl font-bold">U</div>
+              <div class="mt-2 font-semibold">Demo Trader</div>
+              <div class="text-xs text-gray-400">Paper Trading Mode · Nigeria</div>
+            </div>
+            <div class="bg-surface-800 rounded-xl border border-gray-700 divide-y divide-gray-700">
+              <div class="px-4 py-3 flex justify-between text-sm">
+                <span class="text-gray-400">Experience</span>
+                <span>Beginner / Intermediate</span>
+              </div>
+              <div class="px-4 py-3 flex justify-between text-sm">
+                <span class="text-gray-400">Preferred Markets</span>
+                <span>Forex + Crypto</span>
+              </div>
+              <div class="px-4 py-3 flex justify-between text-sm">
+                <span class="text-gray-400">Risk per trade</span>
+                <span>1% default</span>
+              </div>
+            </div>
+            <div class="bg-amber-900/20 border border-amber-800/50 rounded-xl p-3 text-xs text-amber-200">
+              <strong>Important:</strong> This is a prototype for education and simulation only. No real money, no live execution, no investment advice. Austonix Golden Heirs Ltd.
+            </div>
+            <button onclick="resetDemo()" class="w-full text-sm text-rose-400 py-2">Reset Demo Data</button>
+          </div>
+        `;
+      }
+    };
+
+    // ========== HELPERS ==========
+    function formatPrice(pair, price) {
+      if (pair.includes('JPY')) return price.toFixed(2);
+      if (pair.includes('BTC') || pair.includes('ETH')) return price.toLocaleString(undefined, {maximumFractionDigits: 0});
+      return price.toFixed(4);
+    }
+
+    function generateMockCandles() {
+      let html = '';
+      for (let i = 0; i < 28; i++) {
+        const h = 20 + Math.random() * 60;
+        const up = Math.random() > 0.45;
+        html += `<div class="candle rounded-sm" style="height:${h}px; background:${up ? '#34d399' : '#f87171'}"></div>`;
+      }
+      return html;
+    }
+
+    function positionCard(p, showClose = false) {
+      const current = state.prices[p.pair] || p.entry;
+      const dir = p.side === 'long' ? 1 : -1;
+      const pnl = (current - p.entry) * dir * p.size;
+      return `
+        <div class="bg-surface-800 rounded-xl p-3 mb-2 border border-gray-700">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-medium text-sm">${p.pair} <span class="text-xs ${p.side==='long'?'text-emerald-400':'text-rose-400'}">${p.side.toUpperCase()}</span></div>
+              <div class="text-[10px] text-gray-500">Entry ${formatPrice(p.pair, p.entry)} · Size ${p.size}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-sm ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}</div>
+              ${showClose ? `<button onclick="closePosition('${p.id}')" class="text-[10px] text-rose-400 mt-1">Close</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateLivePrices() {
+      Object.keys(state.prices).forEach(pair => {
+        document.querySelectorAll(`.price-${pair}`).forEach(el => {
+          el.textContent = formatPrice(pair, state.prices[pair]);
+        });
+      });
+    }
+
+    // Risk Calculator
+    let currentSide = 'long';
+    function setSide(side) {
+      currentSide = side;
+      document.getElementById('side-long').className = side === 'long' 
+        ? 'flex-1 py-2 rounded-lg text-sm font-medium bg-emerald-600/20 text-emerald-400 border border-emerald-700'
+        : 'flex-1 py-2 rounded-lg text-sm font-medium bg-surface-700 text-gray-300 border border-gray-600';
+      document.getElementById('side-short').className = side === 'short'
+        ? 'flex-1 py-2 rounded-lg text-sm font-medium bg-rose-600/20 text-rose-400 border border-rose-700'
+        : 'flex-1 py-2 rounded-lg text-sm font-medium bg-surface-700 text-gray-300 border border-gray-600';
+    }
+
+    function initRiskCalc() {
+      const pair = document.getElementById('rc-pair')?.value || state.selectedPair;
+      const price = state.prices[pair];
+      document.getElementById('rc-entry').value = price;
+      document.getElementById('rc-stop').value = (price * 0.995).toFixed(pair.includes('JPY') ? 2 : 4);
+      document.getElementById('pt-entry').value = price;
+      document.getElementById('rc-pair').onchange = () => {
+        const p = state.prices[document.getElementById('rc-pair').value];
+        document.getElementById('rc-entry').value = p;
+        document.getElementById('rc-stop').value = (p * 0.995).toFixed(4);
+        document.getElementById('pt-entry').value = p;
+      };
+    }
+
+    function calculateRisk() {
+      const equity = +document.getElementById('rc-equity').value;
+      const riskPct = +document.getElementById('rc-risk').value;
+      const entry = +document.getElementById('rc-entry').value;
+      const stop = +document.getElementById('rc-stop').value;
+      const pair = document.getElementById('rc-pair').value;
+
+      if (!equity || !riskPct || !entry || !stop) return;
+
+      const riskAmount = equity * (riskPct / 100);
+      const stopDistance = Math.abs(entry - stop);
+      const positionSize = stopDistance > 0 ? riskAmount / stopDistance : 0;
+      const positionValue = positionSize * entry;
+
+      const result = document.getElementById('rc-result');
+      result.classList.remove('hidden');
+      result.innerHTML = `
+        <div class="flex justify-between"><span class="text-gray-400">Risk Amount</span><span>$${riskAmount.toFixed(2)}</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">Stop Distance</span><span>${stopDistance.toFixed(5)}</span></div>
+        <div class="flex justify-between font-medium text-brand-300"><span>Suggested Size</span><span>${positionSize.toFixed(0)} units</span></div>
+        <div class="flex justify-between text-xs"><span class="text-gray-500">Approx. Position Value</span><span>$${positionValue.toFixed(0)}</span></div>
+        <p class="text-[10px] text-gray-500 mt-2">This is educational sizing only. Always consider spread, liquidity and your full portfolio risk.</p>
+      `;
+      document.getElementById('pt-size').value = Math.round(positionSize);
+    }
+
+    function openPaperTrade() {
+      const pair = document.getElementById('rc-pair').value;
+      const size = +document.getElementById('pt-size').value;
+      const entry = state.prices[pair];
+      if (!size || size <= 0) return alert('Enter a valid size');
+
+      const pos = {
+        id: Date.now().toString(),
+        pair,
+        side: currentSide,
+        size,
+        entry,
+        openedAt: Date.now()
+      };
+      state.positions.push(pos);
+      saveState();
+      showScreen('trade');
+    }
+
+    function closePosition(id) {
+      const idx = state.positions.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      const p = state.positions[idx];
+      const current = state.prices[p.pair];
+      const dir = p.side === 'long' ? 1 : -1;
+      const pnl = (current - p.entry) * dir * p.size;
+
+      state.trades.push({
+        ...p,
+        exit: current,
+        pnl,
+        closedAt: Date.now(),
+        note: ''
+      });
+      state.balance += pnl;
+      state.positions.splice(idx, 1);
+      saveState();
+      showScreen('trade');
+    }
+
+    // AI Mock
+    function focusAIInput() {
+      setTimeout(() => document.getElementById('ai-input')?.focus(), 100);
+    }
+
+    function sendAI() {
+      const input = document.getElementById('ai-input');
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      askAI(q);
+    }
+
+    function askAI(question) {
+      const container = document.getElementById('ai-messages');
+      container.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-brand-600/30 border border-brand-700 rounded-2xl rounded-br-md px-3 py-2 text-sm max-w-[85%]">${question}</div>
+        </div>
+      `;
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        const response = generateAIResponse(question);
+        container.innerHTML += `
+          <div class="bg-surface-800 rounded-2xl p-3 text-sm border border-gray-700 max-w-[90%]">
+            <div class="text-xs text-brand-400 mb-1.5">Austonix AI · Educational</div>
+            ${response}
+            <div class="mt-2 pt-2 border-t border-gray-700 text-[10px] text-gray-500">
+              This analysis is for learning purposes only. Markets involve substantial risk of loss. Past patterns do not guarantee future results.
+            </div>
+          </div>
+        `;
+        container.scrollTop = container.scrollHeight;
+      }, 800 + Math.random() * 600);
+    }
+
+    function generateAIResponse(q) {
+      const pair = state.selectedPair;
+      const price = state.prices[pair];
+      const lower = q.toLowerCase();
+
+      if (lower.includes('rsi') || lower.includes('relative strength')) {
+        return `
+          <p><strong>RSI (Relative Strength Index)</strong> measures the speed and magnitude of recent price changes on a scale of 0–100.</p>
+          <ul class="list-disc ml-4 mt-2 space-y-1 text-gray-300">
+            <li>Above 70 is often considered overbought (potential exhaustion of buying pressure).</li>
+            <li>Below 30 is often considered oversold (potential exhaustion of selling pressure).</li>
+            <li>It is a lagging indicator and works better in ranging markets than strong trends.</li>
+          </ul>
+          <p class="mt-2">Current mock RSI on ${pair} is around 58 — neutral territory. Always combine with structure and risk management rather than using RSI alone.</p>
+        `;
+      }
+      if (lower.includes('risk') || lower.includes('position') || lower.includes('size')) {
+        return `
+          <p>Good question. Professional risk thinking usually starts with:</p>
+          <ol class="list-decimal ml-4 mt-2 space-y-1 text-gray-300">
+            <li>Decide the maximum percentage of equity you are willing to lose on one idea (commonly 0.5–1% for beginners).</li>
+            <li>Identify a logical invalidation level (your stop).</li>
+            <li>Calculate position size so that if the stop is hit, the loss equals only that percentage.</li>
+          </ol>
+          <p class="mt-2">Use the Risk Calculator on the Trade tab. It forces this sequence before you open a paper position. This is one of the highest-leverage habits you can build.</p>
+        `;
+      }
+      // Default market analysis
+      return `
+        <p>Here is a structured look at <strong>${pair}</strong> (current mock price: ${formatPrice(pair, price)}).</p>
+        <p class="mt-2"><strong>Observed conditions (illustrative):</strong></p>
+        <ul class="list-disc ml-4 mt-1 space-y-1 text-gray-300">
+          <li>Price is trading near recent range. Short-term momentum appears mixed.</li>
+          <li>Key technical levels to watch would be recent swing highs/lows and the 50-period moving average (not shown in this prototype).</li>
+          <li>Volatility is moderate based on the mock ATR reading.</li>
+        </ul>
+        <p class="mt-2"><strong>Uncertainty & alternative scenarios:</strong></p>
+        <ul class="list-disc ml-4 mt-1 space-y-1 text-gray-300">
+          <li>A break and hold above resistance could open room toward the next liquidity zone.</li>
+          <li>Failure at resistance with increasing selling pressure could retest support.</li>
+          <li>Macro or news events can invalidate pure technical readings quickly.</li>
+        </ul>
+        <p class="mt-2">This is not a recommendation to buy or sell. It is an example of how to structure an analysis with evidence and uncertainty. Use the Risk Calculator before any paper trade.</p>
+      `;
+    }
+
+    function addJournalNote() {
+      const note = document.getElementById('journal-note').value.trim();
+      if (!note) return;
+      state.journal.push({ id: Date.now(), note, at: Date.now() });
+      saveState();
+      document.getElementById('journal-note').value = '';
+      alert('Note saved (stored locally in this browser)');
+    }
+
+    function resetDemo() {
+      if (confirm('Reset all paper trades and journal data?')) {
+        state.positions = [];
+        state.trades = [];
+        state.journal = [];
+        state.balance = 10000;
+        saveState();
+        showScreen('dashboard');
+      }
+    }
+
+    // Init
+    showScreen('dashboard');
+  </script>
+</body>
+</html>
